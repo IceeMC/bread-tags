@@ -90,7 +90,7 @@ func RunTag(token Token, context map[string]interface{}) string {
 	} else {
 		s := strings.Split(token.Text, ":")
 		name = s[0]
-		if len(s) > {
+		if len(s) == 2 {
 			value = s[1]
 		}
 	}

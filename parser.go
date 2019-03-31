@@ -1,3 +1,6 @@
+// Copyright (c) 2019 Soumil07. All rights reserved. BSD-3 License
+//
+
 package main
 
 import (
@@ -87,13 +90,13 @@ func RunTag(token Token, context map[string]interface{}) string {
 	} else {
 		s := strings.Split(token.Text, ":")
 		name = s[0]
-		if len(s) > 1 {
+		if len(s) > {
 			value = s[1]
 		}
 	}
 	t, exists := Tags[name]
 	if value == "" {
-		value = ""
+	     value = ""
 	}
 	if !exists {
 		return fmt.Sprintf("{%s:%s}", name, value)
@@ -110,7 +113,7 @@ func GetTokenType(c string) int {
 }
 
 func MakeToken(parent *Token, t int) *Token {
-	return &Token{Parent: parent, Child: nil, Type: t, Text: ""}
+        return &Token{Parent: parent, Child: nil, Type: t, Text: ""}
 }
 
 // A function to scan for tokens

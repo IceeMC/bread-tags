@@ -4,7 +4,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"math"
 	"math/rand"
@@ -28,65 +27,24 @@ type Token struct {
 
 var Tags = map[string]*Tag{}
 
-type Parser struct {
-}
-
-func (parser Parser) GetTags(t *Tag) map[string]*Tag {
-	return Tags
-}
-
-func (parser Parser) LoadTag(t *Tag) (*Tag, error) {
-	if t == nil || t.Name == "" {
-		return nil, errors.New("expected a tag")
-	}
-	if _, exists := Tags[t.Name]; exists {
-		return nil, fmt.Errorf("%s already exists", t.Name)
-	}
-	Tags[t.Name] = t
-	if len(t.Aliases) > 0 {
-		for _, a := range t.Aliases {
-			Tags[a] = t
+func LoadTags(tags ...*Tag) {
+	for _, t := range tags {
+		Tags[t.Name] = t
+		if len(t.Aliases) > 0 {
+			for _, a := range t.Aliases {
+				Tags[a] = t
+			}
 		}
 	}
-	return t, nil
 }
 
-func LoadTagNoParser(t *Tag) (*Tag, error) {
-	if t == nil || t.Name == "" {
-		return nil, errors.New("expected a tag")
-	}
-	if _, exists := Tags[t.Name]; exists {
-		return nil, fmt.Errorf("%s already exists", t.Name)
-	}
-	Tags[t.Name] = t
-	if len(t.Aliases) > 0 {
-		for _, a := range t.Aliases {
-			Tags[a] = t
-		}
-	}
-	return t, nil
-}
-
-func (parser Parser) LoadTags(tags ...*Tag) []*Tag {
-	var out []*Tag
-	for _, tag := range tags {
-		tag, _ := parser.LoadTag(tag)
-		if tag != nil {
-			out = append(out, tag)
-		} else {
-			out = append(out, nil)
-		}
-	}
-	return out
-}
-
-// A function to run tags
-func RunTag(token Token, context map[string]interface{}) string {
+// runTag executes the given tag
+func runTag(token Token, context map[string]interface{}) string {
 	name := ""
 	value := ""
 	if token.Child != nil {
 		name = strings.Split(token.Text, ":")[0]
-		value = RunTag(*token.Child, context)
+		value = runTag(*token.Child, context)
 	} else {
 		s := strings.Split(token.Text, ":")
 		name = s[0]
@@ -96,7 +54,7 @@ func RunTag(token Token, context map[string]interface{}) string {
 	}
 	t, exists := Tags[name]
 	if value == "" {
-	     value = ""
+		value = ""
 	}
 	if !exists {
 		return fmt.Sprintf("{%s:%s}", name, value)
@@ -104,7 +62,7 @@ func RunTag(token Token, context map[string]interface{}) string {
 	return t.Run(value, context)
 }
 
-func GetTokenType(c string) int {
+func getTokenType(c string) int {
 	t := 1
 	if c != "{" {
 		t = 0
@@ -113,12 +71,12 @@ func GetTokenType(c string) int {
 }
 
 func MakeToken(parent *Token, t int) *Token {
-        return &Token{Parent: parent, Child: nil, Type: t, Text: ""}
+	return &Token{Parent: parent, Child: nil, Type: t, Text: ""}
 }
 
-// A function to scan for tokens
-func Lex(tag string) []Token {
-	tok := MakeToken(nil, GetTokenType(string(tag[:1])))
+// lex scans the input string and generates a stream of tokens
+func lex(tag string) []Token {
+	tok := MakeToken(nil, getTokenType(string(tag[:1])))
 	if tok.Type == 0 {
 		tok.Text += string(tag[:1])
 	}
@@ -143,9 +101,9 @@ func Lex(tag string) []Token {
 					if tok.Parent == nil {
 						tokens = append(tokens, *tok)
 						if i+1 == len(tag) { // Fix for list out of range
-							tok = MakeToken(nil, GetTokenType(string(tag[i])))
+							tok = MakeToken(nil, getTokenType(string(tag[i])))
 						} else {
-							tok = MakeToken(nil, GetTokenType(string(tag[i+1])))
+							tok = MakeToken(nil, getTokenType(string(tag[i+1])))
 						}
 					} else {
 						tok = tok.Parent
@@ -160,14 +118,14 @@ func Lex(tag string) []Token {
 	return tokens
 }
 
-func (parser Parser) Parse(input string, context map[string]interface{}) string {
+func Parse(input string, context map[string]interface{}) string {
 	out := ""
-	tokens := Lex(input)
+	tokens := lex(input)
 	for _, token := range tokens {
 		if token.Type == 0 {
 			out += token.Text
 		} else {
-			out += RunTag(token, context)
+			out += runTag(token, context)
 		}
 	}
 	return out
@@ -196,7 +154,7 @@ func init() {
 		Aliases: []string{"titlecase"},
 	}
 	chooseTag := &Tag{
-		Name: "capitalize",
+		Name: "choose",
 		Run: func(value string, context map[string]interface{}) string {
 			rand.Seed(time.Now().Unix())
 			choices := strings.Split(value, ";")
@@ -225,9 +183,6 @@ func init() {
 		},
 		Aliases: []string{"upper"},
 	}
-	LoadTagNoParser(argsTag)
-	LoadTagNoParser(capitalizeTag)
-	LoadTagNoParser(chooseTag)
-	LoadTagNoParser(rangeTag)
-	LoadTagNoParser(upperCase)
+
+	LoadTags(argsTag, capitalizeTag, chooseTag, rangeTag, upperCase)
 }

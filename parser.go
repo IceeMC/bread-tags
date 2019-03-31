@@ -121,7 +121,7 @@ func Lex(tag string) []Token {
 	}
 	var tokens []Token
 	for i := 1; i < len(tag); i++ {
-		c := []rune(tag)[i]
+		c := tag[i]
 		switch {
 		case c == '{':
 			{
@@ -139,7 +139,7 @@ func Lex(tag string) []Token {
 				if tok.Type == 1 {
 					if tok.Parent == nil {
 						tokens = append(tokens, *tok)
-						if i+1 == len(tag) {
+						if i+1 == len(tag) { // Fix for list out of range
 							tok = MakeToken(nil, GetTokenType(string(tag[i])))
 						} else {
 							tok = MakeToken(nil, GetTokenType(string(tag[i+1])))
@@ -151,9 +151,6 @@ func Lex(tag string) []Token {
 				break
 			}
 		default:
-			if tok.Type == 0 {
-				tok.Type = 0
-			}
 			tok.Text += string(c)
 		}
 	}

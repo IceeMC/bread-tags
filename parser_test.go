@@ -49,6 +49,13 @@ func TestParser(t *testing.T) {
 			t.Errorf("Test failed, expected %s, got %s", expected, result)
 		}
 	})
+	t.Run("uppercase with text", func(t *testing.T) {
+		expected := "Hi, USER"
+		result := parser.Parse("Hi, {uppercase:User}", nil)
+		if result != expected {
+			t.Errorf("Test failed, expected %s, got %s", expected, result)
+		}
+	})
 	emptyString := &Tag{
 		Name: "emptystring",
 		Run: func(value string, context map[string]interface{}) string {

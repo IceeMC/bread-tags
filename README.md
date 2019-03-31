@@ -1,5 +1,3 @@
-Copyright (c) 2019 Soumil07. All rights reserved. BSD-3 License
-
 # bread-tags
 bread-tags is a minimal, customizable, fast tas parser for discord bots.
 
